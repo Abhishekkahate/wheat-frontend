@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Wheat Detector</title></head>
+<body style="font-family:Arial, sans-serif; padding:20px;">
+  <h2>Wheat disease detection</h2>
+  <input type="file" id="file" accept="image/*"><br><br>
+  <button id="send">Upload & Predict</button>
+  <div id="out" style="margin-top:18px"></div>
+
+  <script>
+    const API_URL = "https://YOUR_RENDER_URL/predict"; // change after deploying backend
+    document.getElementById('send').onclick = async () => {
+      const f = document.getElementById('file').files[0];
+      if(!f){ alert('Choose an image'); return; }
+      const fd = new FormData(); fd.append('file', f);
+      document.getElementById('out').innerText = 'Uploading image...';
+      try {
+        const res = await fetch(API_URL, { method:'POST', body: fd });
+        if(!res.ok) throw new Error('Server responded ' + res.status);
+        const j = await res.json();
+        let html = '<h3>Predictions</h3><ul>';
+        j.predictions.forEach(p => html += `<li>${p.class} — ${(p.confidence*100).toFixed(2)}%</li>`);
+        html += '</ul>';
+        html += `<img src="${URL.createObjectURL(f)}" style="max-width:70%; margin-top:10px;">`;
+        document.getElementById('out').innerHTML = html;
+      } catch(err) {
+        document.getElementById('out').innerText = 'Error: ' + err.message;
+      }
+    };
+  </script>
+</body>
+</html>
